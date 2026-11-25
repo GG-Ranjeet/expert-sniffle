@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
     <!-- Core Dark Add-on (defaults to system preference) -->
     <link id="dark-theme" rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/core-dark.min.css" media="(prefers-color-scheme: dark)">
+    <!-- KaTeX CSS for LaTeX Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 
     <style>
       :root {
@@ -17,6 +19,13 @@
       .markdown-section {
         max-width: var(--content-max-width);
         width: 100%;
+      }
+
+      .mermaid {
+        display: flex;
+        justify-content: center;
+        margin: 1.25rem 0;
+        overflow-x: auto;
       }
 
       #theme-toggle {
@@ -46,8 +55,54 @@
 
     <!-- Configuration -->
     <script>
+      function isDarkActive() {
+        const mode = localStorage.getItem('docsify-theme-mode') || 'system';
+        if (mode === 'dark') return true;
+        if (mode === 'light') return false;
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      }
+
       window.$docsify = {
-        //...
+        plugins: [
+          function (hook) {
+            hook.doneEach(function () {
+              const container = document.querySelector('.markdown-section');
+              if (!container) return;
+
+              // Render LaTeX math ($...$ and $$...$$) via KaTeX
+              if (window.renderMathInElement) {
+                window.renderMathInElement(container, {
+                  delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                  ],
+                  throwOnError: false
+                });
+              }
+
+              // Render Mermaid diagrams
+              if (window.mermaid) {
+                const blocks = container.querySelectorAll('pre[data-lang="mermaid"]');
+                blocks.forEach(function (pre) {
+                  const code = pre.querySelector('code');
+                  const div = document.createElement('div');
+                  div.className = 'mermaid';
+                  div.textContent = code ? code.textContent : pre.textContent;
+                  pre.replaceWith(div);
+                });
+                if (blocks.length > 0) {
+                  window.mermaid.initialize({
+                    startOnLoad: false,
+                    theme: isDarkActive() ? 'dark' : 'default'
+                  });
+                  window.mermaid.run({ querySelector: '.mermaid' });
+                }
+              }
+            });
+          }
+        ]
       };
 
       (function () {
@@ -83,7 +138,25 @@
     <!-- Docsify.js -->
     <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
 
-    <!-- Plugins (optional) -->
-    <!-- <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script> -->
+    <!-- KaTeX JS & Auto-Render -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Mermaid JS -->
+    <script type="module">
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+      window.mermaid = mermaid;
+      if (document.querySelector('pre[data-lang="mermaid"]')) {
+        mermaid.initialize({ startOnLoad: false, theme: isDarkActive() ? 'dark' : 'default' });
+        document.querySelectorAll('pre[data-lang="mermaid"]').forEach(function (pre) {
+          const code = pre.querySelector('code');
+          const div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = code ? code.textContent : pre.textContent;
+          pre.replaceWith(div);
+        });
+        mermaid.run({ querySelector: '.mermaid' });
+      }
+    </script>
   </body>
 </html>
