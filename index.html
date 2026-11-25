@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <!-- Core Theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/core.min.css">
+    <!-- Core Dark Add-on (defaults to system preference) -->
+    <link id="dark-theme" rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@5/dist/themes/addons/core-dark.min.css" media="(prefers-color-scheme: dark)">
+
+    <style>
+      :root {
+        --content-max-width: min(92%, 1150px);
+      }
+
+      .markdown-section {
+        max-width: var(--content-max-width);
+        width: 100%;
+      }
+
+      #theme-toggle {
+        position: fixed;
+        top: 14px;
+        right: 18px;
+        z-index: 1000;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(128, 128, 128, 0.35);
+        background: rgba(128, 128, 128, 0.12);
+        color: inherit;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+      }
+      #theme-toggle:hover {
+        background: rgba(128, 128, 128, 0.24);
+      }
+    </style>
+  </head>
+  <body class="loading">
+    <button id="theme-toggle" type="button" title="Switch theme (System / Dark / Light)">Theme: System</button>
+    <div id="app"></div>
+
+    <!-- Configuration -->
+    <script>
+      window.$docsify = {
+        //...
+      };
+
+      (function () {
+        const modes = ['system', 'dark', 'light'];
+        const labels = { system: 'Theme: System', dark: 'Theme: Dark', light: 'Theme: Light' };
+        const mediaMap = {
+          system: '(prefers-color-scheme: dark)',
+          dark: 'all',
+          light: 'not all'
+        };
+
+        const link = document.getElementById('dark-theme');
+        const btn = document.getElementById('theme-toggle');
+
+        function applyTheme(mode) {
+          if (!modes.includes(mode)) mode = 'system';
+          link.media = mediaMap[mode];
+          btn.textContent = labels[mode];
+          localStorage.setItem('docsify-theme-mode', mode);
+        }
+
+        const saved = localStorage.getItem('docsify-theme-mode') || 'system';
+        applyTheme(saved);
+
+        btn.addEventListener('click', function () {
+          const current = localStorage.getItem('docsify-theme-mode') || 'system';
+          const next = modes[(modes.indexOf(current) + 1) % modes.length];
+          applyTheme(next);
+        });
+      })();
+    </script>
+
+    <!-- Docsify.js -->
+    <script src="//cdn.jsdelivr.net/npm/docsify@5"></script>
+
+    <!-- Plugins (optional) -->
+    <!-- <script src="//cdn.jsdelivr.net/npm/docsify@5/dist/plugins/search.min.js"></script> -->
+  </body>
+</html>
